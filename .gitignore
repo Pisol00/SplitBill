@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode/
+.idea/
+
+# Documentation (temporarily untracked; remove before submission)
+README.md
+AI_NOTES.md
+AGENTS.md
+
+# Operating system
+.DS_Store
+Thumbs.db
