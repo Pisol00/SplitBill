@@ -38,9 +38,10 @@ export function ExpenseList({ user, groupId, expenses, payments }: Props) {
         <ul className="-my-4 divide-y divide-line">
           {expenses.map((expense) => (
             <li key={expense.id} className="flex flex-col gap-3 py-4">
-              <div className="flex items-start gap-4">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:gap-4">
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <p className="whitespace-pre-line text-sm font-medium text-fg">
+                  {/* Anywhere: a long word without spaces, such as a URL, must still wrap. */}
+                  <p className="whitespace-pre-line text-sm font-medium text-fg wrap-anywhere">
                     {expense.description}
                   </p>
                   <p className="text-xs text-fg-subtle">
@@ -48,8 +49,8 @@ export function ExpenseList({ user, groupId, expenses, payments }: Props) {
                     {dateFormat.format(new Date(expense.created_at))}
                   </p>
                 </div>
-                <div className="flex items-start gap-1">
-                  <span className="pt-1.5 text-sm font-semibold text-fg tabular-nums">
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-sm font-semibold text-fg tabular-nums">
                     {formatAmount(fromApiAmount(expense.amount))} THB
                   </span>
                   {/* Only the payer may delete; the API enforces this too. */}

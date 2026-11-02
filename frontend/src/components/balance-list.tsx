@@ -22,7 +22,7 @@ export function BalanceList({ user, balances }: { user: string; balances: Balanc
                 <span className="text-xs text-fg-subtle">{status(satang)}</span>
               </div>
               <span
-                className={`rounded-full px-2.5 py-1 text-sm font-medium tabular-nums ${amountStyle(satang)}`}
+                className={`shrink-0 rounded-full px-2.5 py-1 text-sm font-medium tabular-nums ${amountStyle(satang)}`}
               >
                 {satang > 0 ? "+" : ""}
                 {formatAmount(satang)}

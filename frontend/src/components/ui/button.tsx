@@ -17,8 +17,9 @@ const variants: Record<Variant, string> = {
 
 const sizes: Record<Size, string> = {
   md: "h-10 px-4 text-sm",
-  sm: "h-8 px-3 text-sm",
-  icon: "h-8 w-8",
+  // Larger on touch screens, where a small button is hard to hit.
+  sm: "h-10 px-3 text-sm sm:h-8",
+  icon: "h-10 w-10 sm:h-8 sm:w-8",
 };
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -36,7 +37,7 @@ export function Button({
   return (
     <button
       type={type}
-      className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-medium transition-colors duration-150 ease-standard focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-medium whitespace-nowrap transition-colors duration-150 ease-standard focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     />
   );

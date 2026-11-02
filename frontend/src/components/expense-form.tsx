@@ -289,7 +289,7 @@ export function ExpenseForm({ user, group, startOpen }: Props) {
 
           {error && <Alert>{error}</Alert>}
 
-          <div className="flex items-center justify-end gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <span className="text-sm text-fg-subtle tabular-nums">
               {blocker ?? `Total ${formatAmount(total ?? 0)} THB`}
             </span>

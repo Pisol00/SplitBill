@@ -61,10 +61,11 @@ export function UserGroupPicker({ user, groups, groupId }: Props) {
             dialog.current.close();
           }
         }}
-        className="m-auto w-[calc(100%-2rem)] max-w-md rounded-lg border border-line bg-surface shadow-lg backdrop:bg-overlay backdrop:backdrop-blur-sm"
+        className="m-auto w-[calc(100%-2rem)] max-w-md overflow-hidden rounded-lg border border-line bg-surface shadow-lg backdrop:bg-overlay backdrop:backdrop-blur-sm"
       >
-        <div className="flex flex-col gap-5 p-5" aria-busy={pending}>
-          <header className="flex items-center justify-between gap-4">
+        {/* On a short screen only the choices scroll, so Done always stays in view. */}
+        <div className="flex max-h-[calc(100dvh-2rem)] flex-col gap-4 p-5" aria-busy={pending}>
+          <header className="flex shrink-0 items-center justify-between gap-4">
             <h2 id="picker-title" className="text-base font-semibold tracking-tight text-fg">
               Switch user or group
             </h2>
@@ -79,7 +80,8 @@ export function UserGroupPicker({ user, groups, groupId }: Props) {
           </header>
 
           <div
-            className={`flex flex-col gap-5 transition-opacity duration-150 ease-standard ${
+            // The padding keeps the rings of the cards inside the scrolling area.
+            className={`-mx-1 flex min-h-0 flex-col gap-5 overflow-y-auto p-1 transition-opacity duration-150 ease-standard ${
               pending ? "opacity-60" : ""
             }`}
           >

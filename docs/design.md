@@ -215,12 +215,17 @@ action, an indigo accent, and green and red only for balances and errors.
   phone the balances come first. A row waiting for the selected user is highlighted and
   counted in the card header.
 - **User and group in a modal.** A round floating button at the bottom right shows the
-  current user's initial with a small swap badge, and opens a native `<dialog>` with cards for each. `showModal()` traps
-  focus and closes on Escape, and each card is a native radio, so arrow keys work. The
-  page behind is blurred and cannot scroll while the modal is open. The
-  modal stays open after a choice, so a user can change both, and the page updates behind
-  it. The exception is choosing a user who is not in the current group: the server
-  redirects to that user's first group, and the modal closes with the redirect.
+  current user's initial with a small swap badge, and opens a native `<dialog>` with
+  cards for each. `showModal()` traps focus and closes on Escape, and each card is a
+  native radio, so arrow keys work. The page behind is blurred and cannot scroll while
+  the modal is open. The modal stays open after a choice, so a user can change both, and
+  the page updates behind it. The exception is choosing a user who is not in the current
+  group: the server redirects to that user's first group, and the modal closes with the
+  redirect.
+- **Responsive from 320px.** Below the `sm` breakpoint, small buttons grow to 40px for
+  touch, an expense's amount moves under its name, and the payment buttons share a full
+  row. Long words in a description wrap, so they cannot widen the page. On a short
+  screen only the modal's choices scroll, so Done stays in view.
 - **Slips are hard to make.** The delete icon asks before deleting, and the buttons on a
   payment say what they mean, "Confirm received" and "Not received", because a
   confirmation cannot be undone.

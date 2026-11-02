@@ -309,7 +309,9 @@ rejecting, reporting again and confirming as `bob`, `carol` and `alice`, the bal
 after each step, the message when deleting an expense with a waiting payment, and the
 layout at 390px. The floating user and group picker was also checked: choosing a user and
 a group, the arrow keys, every way to close the modal, focus returning to the button, and
-the pointer cursor on its controls.
+the pointer cursor on its controls. Layouts were measured at ten sizes from 320px to
+1920px, including phones in landscape, with extreme data such as a 255-character word and
+the largest amount, using Chrome's device emulation rather than real phones.
 
 ## Known Gaps
 

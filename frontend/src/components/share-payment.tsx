@@ -72,9 +72,10 @@ export function SharePayment({ user, groupId, expense, share, payments }: Props)
       <ShareStatus action={action} share={share} expense={expense} />
 
       {action.kind === "pending" && action.canDecide && (
-        <div className="flex gap-2">
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto">
           <Button
             size="sm"
+            className="flex-auto sm:flex-none"
             disabled={mutation.isPending}
             aria-label={`Confirm you received the payment from ${share.member} for ${expense.description}`}
             onClick={() =>
@@ -86,6 +87,7 @@ export function SharePayment({ user, groupId, expense, share, payments }: Props)
           <Button
             size="sm"
             variant="secondary"
+            className="flex-auto sm:flex-none"
             disabled={mutation.isPending}
             aria-label={`You did not receive the payment from ${share.member} for ${expense.description}`}
             onClick={() =>

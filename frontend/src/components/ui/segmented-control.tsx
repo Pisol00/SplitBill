@@ -58,7 +58,7 @@ export function SegmentedControl<T extends string>({
               tabIndex={checked ? 0 : -1}
               onClick={() => onChange(option.value)}
               onKeyDown={handleKeyDown}
-              className={`h-8 flex-1 rounded-sm px-3 text-sm font-medium transition-colors duration-150 ease-standard focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+              className={`h-10 min-w-0 flex-1 rounded-sm px-2 text-sm font-medium whitespace-nowrap transition-colors sm:h-8 sm:px-3 duration-150 ease-standard focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                 checked
                   ? "bg-surface text-fg shadow-xs"
                   : "text-fg-muted hover:text-fg"
