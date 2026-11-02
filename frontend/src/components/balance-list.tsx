@@ -3,9 +3,9 @@ import { Card } from "@/components/ui/card";
 import type { Balance } from "@/utils/types";
 import { formatAmount, fromApiAmount } from "@/utils/money";
 
-export function BalanceList({ balances }: { balances: Balance[] }) {
+export function BalanceList({ user, balances }: { user: string; balances: Balance[] }) {
   return (
-    <Card title="Balances" description="Positive means the member gets money back.">
+    <Card title="Balances" description="In THB. Positive means the member gets money back.">
       <ul className="flex flex-col gap-1">
         {balances.map(({ member, balance }) => {
           const satang = fromApiAmount(balance);
@@ -13,7 +13,12 @@ export function BalanceList({ balances }: { balances: Balance[] }) {
             <li key={member} className="flex items-center gap-3 py-1.5">
               <Avatar name={member} />
               <div className="flex min-w-0 flex-1 flex-col">
-                <span className="text-sm font-medium text-fg">{member}</span>
+                <span className="text-sm font-medium text-fg">
+                  {member}
+                  {member === user && (
+                    <span className="font-normal text-fg-subtle"> (you)</span>
+                  )}
+                </span>
                 <span className="text-xs text-fg-subtle">{status(satang)}</span>
               </div>
               <span

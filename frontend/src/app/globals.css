@@ -96,6 +96,18 @@
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 }
 
+/* Tailwind gives buttons the default cursor. Everything clickable shows a pointer. */
+@layer base {
+  button:not(:disabled),
+  [role="option"] {
+    cursor: pointer;
+  }
+
+  :disabled {
+    cursor: not-allowed;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

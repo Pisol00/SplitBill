@@ -19,11 +19,14 @@ type Props = {
 export function DeleteExpenseButton({ user, groupId, expenseId, description }: Props) {
   const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
+  // One click on the icon only asks: a deleted expense cannot be brought back here.
+  const [confirming, setConfirming] = useState(false);
 
   // The Server Action deletes the expense; on success the group's queries refetch.
   const remove = useMutation({
     mutationFn: () => deleteExpenseAction(user, groupId, expenseId),
     onSuccess: async (result) => {
+      setConfirming(false);
       if (!result.ok) {
         setError(result.message);
         return;
@@ -31,24 +34,48 @@ export function DeleteExpenseButton({ user, groupId, expenseId, description }: P
       await queryClient.invalidateQueries({ queryKey: groupQueries.all(groupId) });
     },
     // Only unexpected failures, such as a lost connection, reach onError.
-    onError: () => setError(friendlyMessage("network_error")),
+    onError: () => {
+      setConfirming(false);
+      setError(friendlyMessage("network_error"));
+    },
   });
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <Button
-        variant="danger-ghost"
-        size="icon"
-        aria-label={`Delete ${description}`}
-        title="Delete"
-        disabled={remove.isPending}
-        onClick={() => {
-          setError(null);
-          remove.mutate();
-        }}
-      >
-        <TrashIcon />
-      </Button>
+      {confirming ? (
+        <div className="flex gap-1">
+          <Button
+            variant="danger"
+            size="sm"
+            aria-label={`Yes, delete ${description}`}
+            disabled={remove.isPending}
+            onClick={() => remove.mutate()}
+          >
+            Delete
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={remove.isPending}
+            onClick={() => setConfirming(false)}
+          >
+            Cancel
+          </Button>
+        </div>
+      ) : (
+        <Button
+          variant="danger-ghost"
+          size="icon"
+          aria-label={`Delete ${description}`}
+          title="Delete"
+          onClick={() => {
+            setError(null);
+            setConfirming(true);
+          }}
+        >
+          <TrashIcon />
+        </Button>
+      )}
       {error && (
         <p role="alert" className="max-w-48 text-right text-xs text-danger">
           {error}

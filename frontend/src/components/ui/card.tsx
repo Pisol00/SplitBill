@@ -4,7 +4,7 @@ type CardProps = {
   title?: string;
   description?: ReactNode;
   action?: ReactNode;
-  children: ReactNode;
+  children?: ReactNode;
   className?: string;
 };
 
@@ -14,7 +14,9 @@ export function Card({ title, description, action, children, className = "" }: C
       className={`rounded-lg border border-line bg-surface shadow-sm ${className}`}
     >
       {(title || action) && (
-        <header className="flex items-start justify-between gap-4 px-5 pt-5">
+        <header
+          className={`flex items-start justify-between gap-4 px-5 pt-5 ${children ? "" : "pb-5"}`}
+        >
           <div className="flex flex-col gap-0.5">
             {title && (
               <h2 className="text-base font-semibold tracking-tight text-fg">{title}</h2>
@@ -24,7 +26,7 @@ export function Card({ title, description, action, children, className = "" }: C
           {action}
         </header>
       )}
-      <div className="p-5">{children}</div>
+      {children && <div className="p-5">{children}</div>}
     </section>
   );
 }

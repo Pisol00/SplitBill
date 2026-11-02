@@ -57,3 +57,28 @@ export async function deleteExpenseAction(
   }
   return { ok: true };
 }
+
+export async function requestPaymentAction(
+  user: string,
+  groupId: number,
+  expenseId: number,
+): Promise<ActionResult> {
+  const result = await api.requestPayment(user, groupId, expenseId);
+  if (!result.ok) {
+    return { ok: false, message: friendlyMessage(result.code) };
+  }
+  return { ok: true };
+}
+
+export async function decidePaymentAction(
+  user: string,
+  groupId: number,
+  paymentId: number,
+  decision: "confirm" | "reject",
+): Promise<ActionResult> {
+  const result = await api.decidePayment(user, groupId, paymentId, decision);
+  if (!result.ok) {
+    return { ok: false, message: friendlyMessage(result.code) };
+  }
+  return { ok: true };
+}

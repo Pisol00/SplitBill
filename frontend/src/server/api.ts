@@ -12,6 +12,7 @@ import type {
   GroupDetail,
   GroupSummary,
   NewExpense,
+  Payment,
 } from "@/utils/types";
 
 const http = createHttpClient(process.env.API_URL ?? "http://127.0.0.1:8000");
@@ -70,6 +71,35 @@ export function deleteExpense(user: string, groupId: number, expenseId: number) 
   return call<void>({
     method: "DELETE",
     url: `/groups/${groupId}/expenses/${expenseId}`,
+    headers: asUser(user),
+  });
+}
+
+export function listPayments(user: string, groupId: number) {
+  return call<Payment[]>({
+    url: `/groups/${groupId}/payments`,
+    headers: asUser(user),
+  });
+}
+
+export function requestPayment(user: string, groupId: number, expenseId: number) {
+  return call<Payment>({
+    method: "POST",
+    url: `/groups/${groupId}/payments`,
+    headers: asUser(user),
+    data: { expense_id: expenseId },
+  });
+}
+
+export function decidePayment(
+  user: string,
+  groupId: number,
+  paymentId: number,
+  decision: "confirm" | "reject",
+) {
+  return call<Payment>({
+    method: "POST",
+    url: `/groups/${groupId}/payments/${paymentId}/${decision}`,
     headers: asUser(user),
   });
 }

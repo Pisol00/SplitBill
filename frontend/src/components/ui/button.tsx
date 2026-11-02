@@ -1,13 +1,18 @@
 import type { ButtonHTMLAttributes } from "react";
 
-type Variant = "primary" | "ghost" | "danger-ghost";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "danger-ghost";
 type Size = "md" | "sm" | "icon";
 
 const variants: Record<Variant, string> = {
   primary:
     "bg-primary text-primary-fg shadow-xs hover:bg-primary-hover disabled:bg-surface-muted disabled:text-fg-subtle disabled:shadow-none",
-  ghost: "text-fg-muted hover:bg-surface-hover hover:text-fg",
-  "danger-ghost": "text-fg-subtle hover:bg-danger-soft hover:text-danger",
+  secondary:
+    "border border-line-strong bg-surface text-fg shadow-xs hover:bg-surface-hover disabled:opacity-60",
+  ghost: "text-fg-muted hover:bg-surface-hover hover:text-fg disabled:opacity-60",
+  danger:
+    "border border-danger bg-surface text-danger shadow-xs hover:bg-danger-soft disabled:opacity-60",
+  "danger-ghost":
+    "text-fg-subtle hover:bg-danger-soft hover:text-danger disabled:opacity-60",
 };
 
 const sizes: Record<Size, string> = {

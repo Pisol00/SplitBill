@@ -42,6 +42,10 @@ export function GroupView({ selection }: { selection: Selection }) {
     ...groupQueries.balances(user, groupId),
     queryFn: () => api.getBalances(user, groupId),
   });
+  void queryClient.prefetchQuery({
+    ...groupQueries.payments(user, groupId),
+    queryFn: () => api.listPayments(user, groupId),
+  });
 
   return (
     <HydrationBoundary

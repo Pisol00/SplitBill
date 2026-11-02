@@ -9,7 +9,7 @@
 import { queryOptions } from "@tanstack/react-query";
 
 import { type ApiResult, createHttpClient, send } from "./http";
-import type { Balance, Expense, GroupDetail } from "./types";
+import type { Balance, Expense, GroupDetail, Payment } from "./types";
 
 const routeHandlers = createHttpClient("/api");
 
@@ -42,6 +42,13 @@ export const groupQueries = {
     queryOptions({
       queryKey: ["groups", groupId, "balances", user] as const,
       queryFn: () => get<Balance[]>(`/groups/${groupId}/balances`, user),
+      staleTime,
+    }),
+
+  payments: (user: string, groupId: number) =>
+    queryOptions({
+      queryKey: ["groups", groupId, "payments", user] as const,
+      queryFn: () => get<Payment[]>(`/groups/${groupId}/payments`, user),
       staleTime,
     }),
 };

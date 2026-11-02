@@ -17,6 +17,7 @@ type Props = { user: string; groupId: number };
 
 export function GroupScreen({ user, groupId }: Props) {
   const { data: group } = useSuspenseQuery(groupQueries.detail(user, groupId));
+  const { data: expenses } = useSuspenseQuery(groupQueries.expenses(user, groupId));
   if (!group.ok) {
     return <Alert>{friendlyMessage(group.code)}</Alert>;
   }
@@ -37,10 +38,12 @@ export function GroupScreen({ user, groupId }: Props) {
             key={`${user}-${groupId}`}
             user={user}
             group={group.data}
+            // The form starts closed, so the expenses and their actions are in view.
+            startOpen={expenses.ok && expenses.data.length === 0}
           />
           <Expenses user={user} groupId={groupId} />
         </div>
-        <aside className="lg:sticky lg:top-28">
+        <aside className="order-first lg:sticky lg:top-28 lg:order-last">
           <Balances user={user} groupId={groupId} />
         </aside>
       </div>
@@ -49,11 +52,22 @@ export function GroupScreen({ user, groupId }: Props) {
 }
 
 function Expenses({ user, groupId }: Props) {
-  const { data } = useSuspenseQuery(groupQueries.expenses(user, groupId));
-  if (!data.ok) {
-    return <Alert>{friendlyMessage(data.code)}</Alert>;
+  const { data: expenses } = useSuspenseQuery(groupQueries.expenses(user, groupId));
+  const { data: payments } = useSuspenseQuery(groupQueries.payments(user, groupId));
+  if (!expenses.ok) {
+    return <Alert>{friendlyMessage(expenses.code)}</Alert>;
   }
-  return <ExpenseList user={user} groupId={groupId} expenses={data.data} />;
+  if (!payments.ok) {
+    return <Alert>{friendlyMessage(payments.code)}</Alert>;
+  }
+  return (
+    <ExpenseList
+      user={user}
+      groupId={groupId}
+      expenses={expenses.data}
+      payments={payments.data}
+    />
+  );
 }
 
 function Balances({ user, groupId }: Props) {
@@ -61,5 +75,5 @@ function Balances({ user, groupId }: Props) {
   if (!data.ok) {
     return <Alert>{friendlyMessage(data.code)}</Alert>;
   }
-  return <BalanceList balances={data.data} />;
+  return <BalanceList user={user} balances={data.data} />;
 }

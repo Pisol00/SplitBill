@@ -11,7 +11,7 @@ type Props = {
 // A native checkbox, so keyboard and screen readers work as usual, drawn with tokens.
 export function Checkbox({ checked, onChange, children }: Props) {
   return (
-    <label className="group inline-flex cursor-pointer items-center gap-2.5 text-sm text-fg">
+    <label className="group flex flex-1 cursor-pointer items-center gap-2.5 self-stretch text-sm text-fg">
       <span className="relative inline-flex h-4.5 w-4.5 shrink-0">
         <input
           type="checkbox"

@@ -14,6 +14,16 @@ export type Expense = {
   created_at: string;
 };
 export type Balance = { member: string; balance: string };
+export type Payment = {
+  id: number;
+  expense_id: number;
+  from_member: string;
+  to_member: string;
+  amount: string;
+  status: "pending" | "confirmed" | "rejected";
+  created_at: string;
+  decided_at: string | null;
+};
 
 export type NewExpense = {
   description: string;
