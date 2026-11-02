@@ -203,6 +203,8 @@ action, an indigo accent, and green and red only for balances and errors.
   `text-fg-muted`, `border-line`, `bg-primary`, `text-danger`, `rounded-md`,
   `shadow-lg`, ...). Tailwind's default palette, radii and shadows are switched off, so
   a class such as `text-gray-500` generates no CSS and cannot slip in.
+- **Icons from `lucide-react`.** Icons inherit the text color and are sized with
+  classes, so they follow the tokens like everything else.
 - **Light theme only.** Every value lives in one set of CSS variables, so a theme
   change touches only `globals.css`.
 - **Pointer cursor in one place.** Tailwind gives buttons the default cursor, so a base
@@ -212,6 +214,13 @@ action, an indigo accent, and green and red only for balances and errors.
   and closes after saving, so the expenses and their payment buttons are in view. On a
   phone the balances come first. A row waiting for the selected user is highlighted and
   counted in the card header.
+- **User and group in a modal.** A round floating button at the bottom right shows the
+  current user's initial with a small swap badge, and opens a native `<dialog>` with cards for each. `showModal()` traps
+  focus and closes on Escape, and each card is a native radio, so arrow keys work. The
+  page behind is blurred and cannot scroll while the modal is open. The
+  modal stays open after a choice, so a user can change both, and the page updates behind
+  it. The exception is choosing a user who is not in the current group: the server
+  redirects to that user's first group, and the modal closes with the redirect.
 - **Slips are hard to make.** The delete icon asks before deleting, and the buttons on a
   payment say what they mean, "Confirm received" and "Not received", because a
   confirmation cannot be undone.

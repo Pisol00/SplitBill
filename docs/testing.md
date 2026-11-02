@@ -307,7 +307,9 @@ for unknown URLs, an inline message when the API is down, and that the browser m
 request to the API itself. The payment flow was checked the same way: reporting, waiting,
 rejecting, reporting again and confirming as `bob`, `carol` and `alice`, the balances
 after each step, the message when deleting an expense with a waiting payment, and the
-layout at 390px.
+layout at 390px. The floating user and group picker was also checked: choosing a user and
+a group, the arrow keys, every way to close the modal, focus returning to the button, and
+the pointer cursor on its controls.
 
 ## Known Gaps
 

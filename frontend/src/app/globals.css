@@ -46,6 +46,8 @@
 
   --sb-ring: #6366f1;
   --sb-backdrop: rgb(250 250 250 / 0.8);
+  --sb-overlay: rgb(24 24 27 / 0.4);
+  --sb-overlay-on-canvas: #a0a0a1; /* --sb-overlay over --sb-canvas, as a solid color */
 }
 
 /* Remove Tailwind's defaults, so only the tokens below exist. */
@@ -76,6 +78,7 @@
   --color-danger-soft: var(--sb-danger-soft);
   --color-ring: var(--sb-ring);
   --color-backdrop: var(--sb-backdrop);
+  --color-overlay: var(--sb-overlay);
 
   /* Radius: controls, cards, pills */
   --radius-sm: 6px;
@@ -105,6 +108,18 @@
 
   :disabled {
     cursor: not-allowed;
+  }
+
+  /* The page keeps still behind a modal. The reserved gutter stops it shifting
+     sideways when the scrollbar goes away. */
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  /* A dialog's backdrop does not reach the gutter, so the gutter matches it instead. */
+  html:has(dialog[open]) {
+    overflow: hidden;
+    background: var(--sb-overlay-on-canvas);
   }
 }
 

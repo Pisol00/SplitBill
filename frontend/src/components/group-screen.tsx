@@ -43,7 +43,7 @@ export function GroupScreen({ user, groupId }: Props) {
           />
           <Expenses user={user} groupId={groupId} />
         </div>
-        <aside className="order-first lg:sticky lg:top-28 lg:order-last">
+        <aside className="order-first lg:sticky lg:top-20 lg:order-last">
           <Balances user={user} groupId={groupId} />
         </aside>
       </div>
