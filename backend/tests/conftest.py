@@ -61,7 +61,7 @@ def database():
 
 @pytest.fixture
 def client(database):
-    """API client. Expenses created by the test are removed afterwards."""
+    """API client. Expenses and payments from the test are removed afterwards."""
     from fastapi.testclient import TestClient
 
     from app.core.db import engine
@@ -72,4 +72,6 @@ def client(database):
 
     # Seed data (users, groups, memberships) is never modified, so it is kept.
     with engine.begin() as connection:
-        connection.execute(text("TRUNCATE expense_shares, expenses RESTART IDENTITY"))
+        connection.execute(
+            text("TRUNCATE payments, expense_shares, expenses RESTART IDENTITY")
+        )

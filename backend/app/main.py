@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
 from app.core.error_handlers import register_error_handlers
-from app.routers import expenses, groups
+from app.routers import expenses, groups, payments
 from app.schemas import HealthOut
 from app.utils.responses import ok
 
@@ -20,3 +20,4 @@ def health_check() -> JSONResponse:
 register_error_handlers(app)
 app.include_router(groups.router)
 app.include_router(expenses.router)
+app.include_router(payments.router)

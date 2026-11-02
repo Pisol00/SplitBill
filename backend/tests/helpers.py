@@ -35,3 +35,27 @@ def delete_expense(client, expense_id, user, group_id=1):
     return client.delete(
         f"/groups/{group_id}/expenses/{expense_id}", headers={"X-User": user}
     )
+
+
+def request_payment(client, expense_id, user, group_id=1):
+    return client.post(
+        f"/groups/{group_id}/payments",
+        json={"expense_id": expense_id},
+        headers={"X-User": user},
+    )
+
+
+def list_payments(client, user="alice", group_id=1):
+    return client.get(f"/groups/{group_id}/payments", headers={"X-User": user})
+
+
+def confirm_payment(client, payment_id, user, group_id=1):
+    return client.post(
+        f"/groups/{group_id}/payments/{payment_id}/confirm", headers={"X-User": user}
+    )
+
+
+def reject_payment(client, payment_id, user, group_id=1):
+    return client.post(
+        f"/groups/{group_id}/payments/{payment_id}/reject", headers={"X-User": user}
+    )

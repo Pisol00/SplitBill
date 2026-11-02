@@ -14,6 +14,10 @@ DOCUMENTED_RESPONSES = [
     ("post", "/groups/{group_id}/expenses", "201", "ExpenseOut"),
     ("post", "/groups/{group_id}/expenses", "200", "ExpenseOut"),
     ("get", "/groups/{group_id}/expenses", "200", "ExpenseOut"),
+    ("post", "/groups/{group_id}/payments", "201", "PaymentOut"),
+    ("get", "/groups/{group_id}/payments", "200", "PaymentOut"),
+    ("post", "/groups/{group_id}/payments/{payment_id}/confirm", "200", "PaymentOut"),
+    ("post", "/groups/{group_id}/payments/{payment_id}/reject", "200", "PaymentOut"),
 ]
 
 

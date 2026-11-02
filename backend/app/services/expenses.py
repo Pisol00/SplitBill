@@ -84,11 +84,17 @@ def delete_expense(
     db: Session, group: Group, user: User, expense_id: int
 ) -> Failure | None:
     """Soft-delete: keep the row, flag it, and exclude it from listings and balances."""
-    expense = repositories.get_active_expense(db, group.id, expense_id)
+    # Locked until the commit, so a payment cannot be requested during the deletion.
+    expense = repositories.get_active_expense(db, group.id, expense_id, lock=True)
     if expense is None:
         return Failure("expense_not_found", "Expense not found.")
     if expense.paid_by_id != user.id:
         return Failure("not_payer", "Only the payer can delete this expense.")
+    if repositories.has_open_payment(db, expense.id):
+        return Failure(
+            "expense_has_payments",
+            "This expense has payments that are waiting or confirmed.",
+        )
     expense.deleted_at = func.now()
     db.commit()
     return None

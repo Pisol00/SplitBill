@@ -16,6 +16,7 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -97,3 +98,39 @@ class ExpenseShare(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
     position: Mapped[int] = mapped_column(SmallInteger)
     amount: Mapped[Decimal] = mapped_column(Money)
+
+
+class Payment(Base):
+    """A member's report that they transferred their share of an expense.
+
+    The sender, the receiver and the amount come from the share and its expense, which
+    never change, so they are not stored again here.
+    """
+
+    __tablename__ = "payments"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["expense_id", "user_id"],
+            ["expense_shares.expense_id", "expense_shares.user_id"],
+        ),
+        CheckConstraint(
+            "status IN ('pending', 'confirmed', 'rejected')", name="status_valid"
+        ),
+        # A share has at most one payment that is waiting or confirmed.
+        Index(
+            "uq_payments_open_share",
+            "expense_id",
+            "user_id",
+            unique=True,
+            postgresql_where=text("status <> 'rejected'"),
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Identity(), primary_key=True)
+    expense_id: Mapped[int]
+    user_id: Mapped[int]
+    status: Mapped[str] = mapped_column(String(10))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

@@ -15,6 +15,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.errors import Failure
 from app.utils.responses import (
+    conflict,
     error,
     forbidden,
     internal_error,
@@ -37,6 +38,13 @@ FAILURE_RESPONSES = {
     "idempotency_key_reused": unprocessable,
     "member_not_in_group": unprocessable,
     "shares_mismatch": unprocessable,
+    "not_payment_receiver": forbidden,
+    "payment_not_found": not_found,
+    "own_share": unprocessable,
+    "no_share": unprocessable,
+    "payment_already_requested": conflict,
+    "payment_not_pending": conflict,
+    "expense_has_payments": conflict,
 }
 
 

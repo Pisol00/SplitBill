@@ -44,3 +44,14 @@ class ExpenseOut(BaseModel):
 class BalanceOut(BaseModel):
     member: str
     balance: MoneyOut
+
+
+class PaymentOut(BaseModel):
+    id: int
+    expense_id: int
+    from_member: str
+    to_member: str
+    amount: MoneyOut
+    status: str
+    created_at: datetime
+    decided_at: datetime | None

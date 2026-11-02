@@ -7,6 +7,10 @@ GROUP_1_ROUTES = [
     ("GET", "/groups/1/expenses"),
     ("POST", "/groups/1/expenses"),
     ("DELETE", "/groups/1/expenses/1"),
+    ("GET", "/groups/1/payments"),
+    ("POST", "/groups/1/payments"),
+    ("POST", "/groups/1/payments/1/confirm"),
+    ("POST", "/groups/1/payments/1/reject"),
 ]
 
 

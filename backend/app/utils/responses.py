@@ -67,6 +67,11 @@ def unprocessable(code: str, message: str) -> JSONResponse:
     return error(status.HTTP_422_UNPROCESSABLE_CONTENT, code, message)
 
 
+def conflict(code: str, message: str) -> JSONResponse:
+    """409: the request is valid but does not fit the current state."""
+    return error(status.HTTP_409_CONFLICT, code, message)
+
+
 def internal_error() -> JSONResponse:
     """500. Never includes details of the failure; those go to the server log."""
     return error(
