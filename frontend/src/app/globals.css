@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens: the single source of truth for the frontend's look.
+ *
+ * 1. Raw values live in CSS variables on :root. The app has a light theme only.
+ * 2. @theme maps them to semantic Tailwind names (bg-surface, text-fg-muted, ...).
+ * 3. Tailwind's default palette, radii and shadows are switched off, so components
+ *    can only use these tokens. A class such as text-gray-500 generates nothing.
+ *
+ * Names describe a role, not a color: "danger", never "red".
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces, from the page background up */
+  --sb-canvas: #fafafa;
+  --sb-surface: #ffffff;
+  --sb-surface-muted: #f4f4f5;
+  --sb-surface-hover: #f4f4f5;
+
+  /* Lines */
+  --sb-line: #e4e4e7;
+  --sb-line-strong: #d4d4d8;
+
+  /* Text: fg for content, muted for secondary, subtle for hints and placeholders */
+  --sb-fg: #18181b;
+  --sb-fg-muted: #52525b;
+  --sb-fg-subtle: #71717a;
+
+  /* Primary action */
+  --sb-primary: #18181b;
+  --sb-primary-hover: #3f3f46;
+  --sb-primary-fg: #fafafa;
+
+  /* Accent: selection, focus and identity */
+  --sb-accent: #4f46e5;
+  --sb-accent-soft: #eef2ff;
+
+  /* Status: money owed to a member, money a member owes, errors */
+  --sb-success: #15803d;
+  --sb-success-soft: #f0fdf4;
+  --sb-danger: #b91c1c;
+  --sb-danger-soft: #fef2f2;
+
+  --sb-ring: #6366f1;
+  --sb-backdrop: rgb(250 250 250 / 0.8);
+}
+
+/* Remove Tailwind's defaults, so only the tokens below exist. */
+@theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+}
+
+@theme inline {
+  --color-canvas: var(--sb-canvas);
+  --color-surface: var(--sb-surface);
+  --color-surface-muted: var(--sb-surface-muted);
+  --color-surface-hover: var(--sb-surface-hover);
+  --color-line: var(--sb-line);
+  --color-line-strong: var(--sb-line-strong);
+  --color-fg: var(--sb-fg);
+  --color-fg-muted: var(--sb-fg-muted);
+  --color-fg-subtle: var(--sb-fg-subtle);
+  --color-primary: var(--sb-primary);
+  --color-primary-hover: var(--sb-primary-hover);
+  --color-primary-fg: var(--sb-primary-fg);
+  --color-accent: var(--sb-accent);
+  --color-accent-soft: var(--sb-accent-soft);
+  --color-success: var(--sb-success);
+  --color-success-soft: var(--sb-success-soft);
+  --color-danger: var(--sb-danger);
+  --color-danger-soft: var(--sb-danger-soft);
+  --color-ring: var(--sb-ring);
+  --color-backdrop: var(--sb-backdrop);
+
+  /* Radius: controls, cards, pills */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Elevation: resting controls, cards, floating popovers */
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-sm: 0 1px 3px rgb(0 0 0 / 0.06), 0 1px 2px rgb(0 0 0 / 0.04);
+  --shadow-lg: 0 12px 32px -8px rgb(0 0 0 / 0.18), 0 2px 6px rgb(0 0 0 / 0.06);
+
+  /* Type: Geist via next/font (see app/layout.tsx), with system fallbacks */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
