@@ -3,8 +3,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from app.config import settings
-from app.db import Base
+from app import models  # noqa: F401  (registers the models on Base.metadata)
+from app.core.config import settings
+from app.core.db import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -13,7 +14,9 @@ config = context.config
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    # Keep loggers that already exist, such as the app's when the test suite runs
+    # migrations in-process; the default would silently disable them.
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 # Escape "%" because the value passes through configparser interpolation.
 config.set_main_option("sqlalchemy.url", settings.database_url.replace("%", "%%"))
