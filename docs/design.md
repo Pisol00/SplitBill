@@ -17,9 +17,9 @@ Design details beyond the decisions covered in the README.
 │   │   ├── main.py      # FastAPI app, error handlers, routers
 │   │   ├── core/        # Settings, database, error types and error handlers
 │   │   ├── dependencies.py  # Requesting user and group membership
-│   │   ├── routers/     # HTTP layer: groups, expenses
+│   │   ├── routers/     # HTTP layer: groups, expenses, payments
 │   │   ├── validators/  # Plain-Python validation of client input
-│   │   ├── services/    # Business rules: splits, expenses, balances
+│   │   ├── services/    # Business rules: splits, expenses, payments, balances
 │   │   ├── repositories.py  # Database queries
 │   │   ├── models.py    # SQLAlchemy models
 │   │   ├── schemas.py   # Response models
@@ -82,6 +82,26 @@ expense and its shares are kept, and every query for listings and balances filte
   returns `404 expense_not_found`.
 - Retaining rows keeps a record of what was entered and deleted, which matters for
   financial data.
+
+## Repayments
+
+**Decision:** A member reports that they transferred their share of an expense, and the
+member who paid the expense confirms or rejects the report. Only a confirmed payment
+changes balances.
+
+- **The receiver decides.** The person who should have received the money is the one who
+  can check that it arrived, so a sender cannot reduce their own debt alone.
+- **Per expense, whole share.** Each payment settles one member's whole share of one
+  expense. Amount and receiver come from the share, so they cannot be entered wrongly.
+- **The API records, it does not move money.** The transfer happens outside the
+  application, and there is no proof of transfer.
+- **An expense with a waiting or confirmed payment cannot be deleted.** If it could, money
+  that really changed hands would disappear from the balances. To delete an expense with a
+  waiting payment, the payer first rejects the payment. A confirmed payment cannot be
+  undone in this version, so its expense stays.
+
+**Trade-off:** A member cannot pay part of a share, or pay one combined amount for several
+expenses.
 
 ## Error format
 
@@ -185,6 +205,16 @@ action, an indigo accent, and green and red only for balances and errors.
   a class such as `text-gray-500` generates no CSS and cannot slip in.
 - **Light theme only.** Every value lives in one set of CSS variables, so a theme
   change touches only `globals.css`.
+- **Pointer cursor in one place.** Tailwind gives buttons the default cursor, so a base
+  rule in `globals.css` sets a pointer on enabled buttons and options, and `not-allowed`
+  on disabled controls. New buttons get it without a class.
+- **The actions come first.** The expense form starts closed once a group has expenses,
+  and closes after saving, so the expenses and their payment buttons are in view. On a
+  phone the balances come first. A row waiting for the selected user is highlighted and
+  counted in the card header.
+- **Slips are hard to make.** The delete icon asks before deleting, and the buttons on a
+  payment say what they mean, "Confirm received" and "Not received", because a
+  confirmation cannot be undone.
 - **Accessible components.** `Select` follows the WAI-ARIA select-only combobox pattern
   and `SegmentedControl` the radio group pattern, both fully usable from the keyboard;
   their key handling is unit-tested (`src/components/ui/listbox.ts`). `Checkbox` is a native
@@ -193,6 +223,7 @@ action, an indigo accent, and green and red only for balances and errors.
 - **Checked in a browser.** Desktop and a 390px mobile layout were rendered in
   headless Chrome. Switching user and group updated the URL and the browser history;
   adding and deleting an expense through the Server Actions updated the balances as
-  expected; the browser made no request to the API itself. On the final code, the
-  developer started the application with `docker compose up --build` and added and
-  deleted an expense in a browser.
+  expected; the browser made no request to the API itself. Before repayments were added,
+  the developer started the application with `docker compose up --build` and added and
+  deleted an expense in a browser. On the final interface, a script in headless Chrome
+  walked the expense and payment flows and checked the cursor of every clickable element.

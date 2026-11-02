@@ -18,6 +18,10 @@ described in [schema.md](schema.md).
   - [`GET /groups/{group_id}/expenses`](#get-groupsgroup_idexpenses)
   - [`DELETE /groups/{group_id}/expenses/{expense_id}`](#delete-groupsgroup_idexpensesexpense_id)
   - [`GET /groups/{group_id}/balances`](#get-groupsgroup_idbalances)
+  - [`POST /groups/{group_id}/payments`](#post-groupsgroup_idpayments)
+  - [`GET /groups/{group_id}/payments`](#get-groupsgroup_idpayments)
+  - [`POST /groups/{group_id}/payments/{payment_id}/confirm`](#post-groupsgroup_idpaymentspayment_idconfirm-and-reject)
+  - [`POST /groups/{group_id}/payments/{payment_id}/reject`](#post-groupsgroup_idpaymentspayment_idconfirm-and-reject)
 - [Access Control](#access-control)
 - [Errors](#errors)
 - [Code Structure](#code-structure)
@@ -61,6 +65,7 @@ What the design protects against, and what it does not:
 | --- | --- |
 | A user reading or changing a group they do not belong to, using their own identity | Yes: membership check, `404` |
 | A member deleting an expense they did not pay, using their own identity | Yes: payer check, `403` |
+| A member confirming a payment to someone else, using their own identity | Yes: receiver check, `403` |
 | A client sending someone else's username | **No**: requires real authentication |
 | Discovering which groups exist | Yes: non-members receive `404`, the same as for a missing group |
 
@@ -152,6 +157,10 @@ change.
 | `GET` | `/groups/{group_id}/expenses` | `200` | Expenses, newest first |
 | `DELETE` | `/groups/{group_id}/expenses/{expense_id}` | `204` | Soft-delete an expense (payer only) |
 | `GET` | `/groups/{group_id}/balances` | `200` | Net balance of each member |
+| `POST` | `/groups/{group_id}/payments` | `201` | Report that you transferred your share of an expense |
+| `GET` | `/groups/{group_id}/payments` | `200` | Payments, newest first |
+| `POST` | `/groups/{group_id}/payments/{payment_id}/confirm` | `200` | Confirm a waiting payment (payer of the expense only) |
+| `POST` | `/groups/{group_id}/payments/{payment_id}/reject` | `200` | Reject a waiting payment (payer of the expense only) |
 
 ---
 
@@ -455,7 +464,8 @@ Each item has the same fields as the `POST` response. A group with no expenses r
 ### `DELETE /groups/{group_id}/expenses/{expense_id}`
 
 Soft-deletes an expense: sets `deleted_at`, keeps the row, and excludes it from listings
-and balances. Only the payer may delete.
+and balances. Only the payer may delete. An expense with a payment that is waiting or
+confirmed cannot be deleted; a rejected payment does not block deletion.
 
 **Request**
 
@@ -480,7 +490,7 @@ No body.
 
 **Errors:** `401 missing_user`, `401 unknown_user`, `404 group_not_found`,
 `404 expense_not_found` (missing, in another group, or already deleted),
-`403 not_payer`.
+`403 not_payer`, `409 expense_has_payments`.
 
 Example, `bob` deleting an expense paid by `alice`:
 
@@ -504,7 +514,7 @@ Content-Type: application/json
 
 Net balance of each member, ordered by username. A positive balance means the member is
 owed money; a negative balance means the member owes money. Balances sum to exactly
-`0.00`. Members with no expenses have `"0.00"`.
+`0.00`. Members with no expenses have `"0.00"`. Only confirmed payments change balances.
 
 **Request**
 
@@ -541,6 +551,101 @@ Content-Type: application/json
 
 **Errors:** `401 missing_user`, `401 unknown_user`, `404 group_not_found`.
 
+---
+
+### `POST /groups/{group_id}/payments`
+
+Reports that the requesting user transferred their whole share of an expense. The API
+does not move money: it records the report, and the member who paid the expense then
+confirms or rejects it. The payment does not change balances until it is confirmed.
+
+**Request**
+
+| Part | Value |
+| --- | --- |
+| Headers | `X-User` (required), `Content-Type: application/json` (required) |
+| Path parameters | `group_id` (integer) |
+| Body | `expense_id` (integer) |
+
+```http
+POST /groups/1/payments HTTP/1.1
+X-User: bob
+Content-Type: application/json
+```
+
+```json
+{ "expense_id": 7 }
+```
+
+**Response `201 Created`**
+
+```json
+{
+  "id": 3,
+  "expense_id": 7,
+  "from_member": "bob",
+  "to_member": "alice",
+  "amount": "333.33",
+  "status": "pending",
+  "created_at": "2026-10-28T11:00:00Z",
+  "decided_at": null
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | integer | Payment ID |
+| `expense_id` | integer | The expense being paid back |
+| `from_member` | string | The member who transferred the money |
+| `to_member` | string | The member who paid the expense and receives the money |
+| `amount` | string | The sender's share of the expense, two decimal places |
+| `status` | string | `"pending"`, `"confirmed"` or `"rejected"` |
+| `created_at` | string | When the transfer was reported, ISO 8601 UTC |
+| `decided_at` | string or null | When it was confirmed or rejected |
+
+A share has at most one payment that is waiting or confirmed, including under concurrent
+requests, so a repeated request returns `409` and creates nothing. After a rejection, the
+member may report the transfer again, which creates a new payment.
+
+**Errors:** `401 missing_user`, `401 unknown_user`, `404 group_not_found`,
+`404 expense_not_found`, `409 payment_already_requested`, `422 validation_error`,
+`422 own_share` (the user paid this expense), `422 no_share` (the user has no share in
+this expense, or a share of `0.00`).
+
+---
+
+### `GET /groups/{group_id}/payments`
+
+Returns every payment of the group's expenses that are not deleted, including rejected
+ones, newest first (`created_at DESC, id DESC`). Any group member may read them. Each item
+has the same fields as the `POST` response. A group with no payments returns `[]`.
+
+**Errors:** `401 missing_user`, `401 unknown_user`, `404 group_not_found`.
+
+---
+
+### `POST /groups/{group_id}/payments/{payment_id}/confirm` and `/reject`
+
+Decides a waiting payment, with no request body. Only the member who paid the expense may
+decide, and a payment can be decided once, including under concurrent requests. Confirming
+moves the amount in the balances: the sender's balance goes up and the receiver's goes
+down, so the group still sums to `0.00`.
+
+```http
+POST /groups/1/payments/3/confirm HTTP/1.1
+X-User: alice
+```
+
+**Response `200 OK`:** the payment, with `status` set to `"confirmed"` or `"rejected"` and
+`decided_at` set.
+
+After the confirmation above, the balances from the dinner example are `alice 333.33`,
+`bob 0.00` and `carol -333.33`.
+
+**Errors:** `401 missing_user`, `401 unknown_user`, `404 group_not_found`,
+`404 payment_not_found` (missing, or in another group), `403 not_payment_receiver`,
+`409 payment_not_pending`.
+
 ## Access Control
 
 Checked in this order for every `/groups` endpoint, before the rules for the request body.
@@ -553,6 +658,7 @@ the framework rejects these with `422 validation_error` before these checks run.
 | 2. `X-User` is a known user | Unknown username | `401` |
 | 3. Group exists **and** the user is a member | Either is false | `404` |
 | 4. (`DELETE` only) user is the payer | Not the payer | `403` |
+| 4. (`confirm` and `reject` only) user paid the expense | Any other member | `403` |
 
 Step 3 deliberately returns the same response whether the group does not exist or the
 user is not a member, so non-members cannot discover which groups exist.
@@ -604,8 +710,15 @@ All errors, including FastAPI's request validation errors, use one JSON shape:
 | `401` | `missing_user` | `X-User` header missing or empty |
 | `401` | `unknown_user` | `X-User` does not match a user |
 | `403` | `not_payer` | Deleting an expense the user did not pay |
+| `403` | `not_payment_receiver` | Deciding a payment for an expense the user did not pay |
 | `404` | `group_not_found` | Group missing, or user not a member |
 | `404` | `expense_not_found` | Expense missing, in another group, or already deleted |
+| `404` | `payment_not_found` | Payment missing, or in another group |
+| `409` | `payment_already_requested` | The share already has a payment that is waiting or confirmed |
+| `409` | `payment_not_pending` | The payment was already confirmed or rejected |
+| `409` | `expense_has_payments` | Deleting an expense with a payment that is waiting or confirmed |
+| `422` | `own_share` | Reporting a payment for an expense the user paid |
+| `422` | `no_share` | Reporting a payment with no share, or a share of `0.00` |
 | `422` | `validation_error` | Malformed body, missing `Idempotency-Key` or `Content-Type`, invalid amount format |
 | `422` | `member_not_in_group` | `paid_by` or a split member is not in the group |
 | `422` | `shares_mismatch` | Exact shares do not sum to the amount |
@@ -631,17 +744,20 @@ backend/app/
 ├── validators/       # Plain-Python validation of client input
 │   ├── money.py      # parse_money
 │   ├── headers.py    # validate_idempotency_key
-│   └── expenses.py   # validate_expense_request and its dataclasses
+│   ├── expenses.py   # validate_expense_request and its dataclasses
+│   └── payments.py   # validate_payment_request
 ├── schemas.py        # Pydantic response models
 ├── utils/
 │   └── responses.py  # ok(), created(), no_content(), error()
 ├── dependencies.py   # get_current_user, get_member_group
 ├── routers/
 │   ├── groups.py     # /groups, /groups/{id}, /groups/{id}/balances
-│   └── expenses.py   # /groups/{id}/expenses...
+│   ├── expenses.py   # /groups/{id}/expenses...
+│   └── payments.py   # /groups/{id}/payments...
 ├── services/
 │   ├── splits.py     # Pure split arithmetic: equal allocation, exact validation
 │   ├── expenses.py   # Create (with idempotency), list, delete
+│   ├── payments.py   # Request, list, confirm or reject
 │   └── balances.py   # Balance calculation
 └── repositories.py   # Database queries
 ```

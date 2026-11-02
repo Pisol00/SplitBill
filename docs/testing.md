@@ -59,7 +59,7 @@ pass it, then the next test.
 | --- | --- | --- | --- |
 | **Unit** | `app/services/splits.py`: equal allocation and exact-split validation, pure `Decimal` arithmetic | No | Milliseconds |
 | **API** | Endpoints end to end through `TestClient`: HTTP status, headers, JSON shape, access control, business rules, persistence | Yes | Fast |
-| **Concurrency** | Idempotency under simultaneous requests, and balances read during concurrent writes | Yes, with real commits across connections | Slower |
+| **Concurrency** | Idempotency and payments under simultaneous requests, and balances read during concurrent writes | Yes, with real commits across connections | Slower |
 
 The allocation arithmetic is tested at the unit level with many cases, because it is
 cheap there. API tests then check that the endpoints use it correctly with a smaller
@@ -94,8 +94,8 @@ number of cases.
 
 ## Isolation Between Tests
 
-**Approach:** after every test that uses the database, `TRUNCATE expense_shares,
-expenses RESTART IDENTITY`. Seed data (users, groups, memberships) is never modified by
+**Approach:** after every test that uses the database, `TRUNCATE payments,
+expense_shares, expenses RESTART IDENTITY`. Seed data (users, groups, memberships) is never modified by
 the application, so it stays in place for all tests.
 
 **Why not roll back a transaction per test?** Rolling back is a common pattern, but it
@@ -105,7 +105,7 @@ does not fit two parts of this project:
 - The concurrency test needs two connections to see each other's committed rows, which
   is impossible inside a single rolled-back transaction.
 
-Truncating two small tables is fast enough for a suite of this size, and it tests the
+Truncating these small tables is fast enough for a suite of this size, and it tests the
 application exactly as it runs.
 
 ## Fixtures
@@ -222,6 +222,29 @@ with a `threading.Barrier`, then lists the group's expenses through the API.
 | Balance sign | Payer positive, others negative |
 | Reading balances while expenses are being recorded | Every read sums to exactly `0.00` |
 
+### Payments (API and concurrency)
+
+| Test | Expected |
+| --- | --- |
+| A member reports a transfer for their share | `201`; sender, receiver and amount from the share; `pending` |
+| Waiting or rejected payment | Balances unchanged |
+| Confirmed payment | `alice 33.33`, `bob 0.00`, `carol -33.33`; sum exactly `0.00` |
+| Reporting again after a rejection | `201` with a new payment |
+| Reporting again while waiting or confirmed | `409 payment_already_requested`; still one payment |
+| The payer reports on their own expense | `422 own_share` |
+| No share, or a share of `0.00` | `422 no_share` |
+| Deciding as the sender or another member | `403 not_payment_receiver`; still `pending`, balances unchanged |
+| Deciding twice, in every combination of confirm and reject | `409 payment_not_pending`; balances keep the first decision |
+| Payment that is missing, in another group, or with an ID outside the `INTEGER` range | `404 payment_not_found`, not `500` |
+| Expense that is deleted, in another group, or with an ID outside the `INTEGER` range | `404 expense_not_found`, not `500` |
+| Body that is not an object, or `expense_id` that is not an integer | `422 validation_error` |
+| Deleting an expense with a waiting or confirmed payment | `409 expense_has_payments` |
+| Deleting an expense with only rejected payments | `204`; its payments leave the list |
+| Payments are listed newest first, and only for the group | Order by `created_at DESC, id DESC` |
+| Concurrent reports for one share | One `201`, the others `409`; one payment |
+| Concurrent confirms and rejects | One `200`, the others `409`; balances sum to `0.00` |
+| Concurrent report and deletion of an expense | Either `201` and `409`, or `404` and `204`; never both succeed |
+
 ### Migrations and seed
 
 | Test | Expected |
@@ -252,6 +275,7 @@ backend/tests/
 ├── test_idempotency.py   # Idempotency, including concurrency and replay after deletion
 ├── test_delete.py        # Soft deletion and payer-only rule
 ├── test_balances.py      # Balance calculation and zero sum
+├── test_payments.py      # Reporting, confirming and rejecting payments, with concurrency
 ├── test_seed.py          # Seed data, checked through the API
 ├── test_errors.py        # 404, 405 and 500 in the standard error format
 └── test_openapi.py       # Every endpoint documents its response schema
@@ -272,14 +296,18 @@ uv run pytest tests/test_splits.py   # unit tests only, no database needed
 (no test library). They cover the integer-satang arithmetic against the backend's own
 cases (`100.00` three ways, remainder order, `0.01` three ways, `0.1 + 0.2` displays
 `0.30`, Thai formatting, parsing rules, balances above the largest single amount), the
-plain-language error messages, keyboard handling, and a server that never answers.
+plain-language error messages, keyboard handling, a server that never answers, and which
+payment action each user is offered for a share.
 
 There are no automated browser tests. The page was checked in headless Chrome against
 the running API and the test database: server-rendered data, switching user and group
 (URL and history), adding and deleting an expense through the Server Actions with
 TanStack Query refetching through the Route Handlers, a `404`
 for unknown URLs, an inline message when the API is down, and that the browser makes no
-request to the API itself.
+request to the API itself. The payment flow was checked the same way: reporting, waiting,
+rejecting, reporting again and confirming as `bob`, `carol` and `alice`, the balances
+after each step, the message when deleting an expense with a waiting payment, and the
+layout at 390px.
 
 ## Known Gaps
 
@@ -287,3 +315,6 @@ request to the API itself.
   the test database: the API returned `201`, and the balances summed to `0.00`.
 - The idempotency concurrency test does not guarantee that two requests reach the database
   constraint at the same moment on every run, so it may not always exercise that path.
+- The same applies to the payment concurrency tests. In one check with the lock removed
+  from reporting a payment, the test for concurrent reports still passed, while the test
+  for a concurrent report and deletion failed. The unique index still prevents a duplicate.

@@ -2,7 +2,8 @@
 
 SplitBill is a shared-expense application. It records costs shared by the members of a
 group, such as a dinner bill or a hotel room, and calculates each member's net balance
-accurate to the satang.
+accurate to the satang. A member can report that they transferred their share, and the
+member who paid the expense confirms it, which updates the balances.
 
 It uses FastAPI, PostgreSQL 16 and Next.js. See [docs/](docs/) for the [API](docs/api.md),
 the [database schema](docs/schema.md), the [test plan](docs/testing.md) and further
@@ -127,6 +128,14 @@ constraint, rolls back, reads the winning row and answers as a replay. Requests 
 compared by a SHA-256 hash of the validated request. Details are in
 [docs/schema.md](docs/schema.md).
 
+### Repayments
+
+A member reports a transfer for their whole share of an expense
+(`POST /groups/{group_id}/payments`). The member who paid the expense then confirms or
+rejects it. Only a confirmed payment changes balances, and it moves the same amount on both
+sides, so balances still sum to exactly `0.00`. Details are in
+[docs/design.md](docs/design.md#repayments).
+
 ### Frontend money without floating-point error
 
 The frontend converts every amount to whole satang, a JavaScript integer, as soon as it is
@@ -153,6 +162,8 @@ Ambiguities in the brief and the interpretation adopted:
 | The frontend must offer user selection, but the API has no endpoint that lists users | The page offers the four seeded users (`frontend/src/utils/users.ts`) | Adding an endpoint outside the brief was not needed for its scope; the user list is fixed seed data |
 | The brief restricts deletion to the payer but does not say who may record an expense | Any group member may record an expense paid by any other group member. Who recorded it is not stored | The frontend form in the brief has a payer field separate from the selected user. This is the simplest rule that satisfies the brief |
 | The brief does not say whether an exact split may give a member a share of zero | A share of `0.00` is accepted, as long as the shares add up to the amount | It is a valid amount, and equal splits can already produce it, for example `0.01` split three ways |
+| The optional repayments extension says a repayment is recorded between two members and updates the balances, but not whether the receiver must agree | A repayment is tied to one share of an expense, and updates balances only after the member who paid the expense confirms it | The receiver is the one who can check that the money arrived, so a sender cannot reduce their own debt alone |
+| The brief restricts deletion to the payer, but does not cover an expense that has repayments | An expense with a waiting or confirmed payment cannot be deleted (`409`) | Deleting it would remove money that really changed hands from the balances |
 
 ## Known Limitations and Next Steps
 
@@ -168,10 +179,15 @@ Ambiguities in the brief and the interpretation adopted:
   server. See [docs/api.md](docs/api.md#authentication).
 - The member who records an expense is not stored, so there is no audit trail of who
   entered it. A `created_by_id` column could be added later.
+- A repayment covers one member's whole share of one expense. Partial payments and one
+  payment across several expenses are not supported, and a confirmed payment cannot be
+  undone.
+- The application does not move money or check proof of transfer. It records what the two
+  members report.
 
 Next steps, in order:
 
-1. Optional extensions from the brief: settlement suggestions and repayments.
+1. The optional settlement suggestions extension from the brief.
 2. Real authentication, kept outside the brief's scope for now.
 
 ## Time Spent

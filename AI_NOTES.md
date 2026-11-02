@@ -121,8 +121,11 @@ Every problem listed here has been fixed. "None" means the check found no proble
 | Database schema | IDs used `SERIAL` instead of the `IDENTITY` in `docs/schema.md` | Declared the columns with `Identity()` | Generated DDL compared again; migration upgrade and downgrade run |
 | Frontend | Seven deviations from the Next.js docs; a balance above `9999999999.99` made the page's money conversion fail; API calls had no timeout | Corrected the deviations; allowed larger balances; added a 10 second timeout | Unit tests cover the balance and the timeout. Adding and deleting expenses, URL handling and an API outage were checked in headless Chrome. After the last fixes, adding and deleting were checked again by hand |
 | Docker | None | Not needed | All services started on a new volume and migrations ran from scratch in order. Containers run as non-root, and images have no `.env` files |
+| Repayments | None | Not needed | Tests were written first and failed until the code existed. Five rules were then removed on purpose, one at a time: the three locks, counting only confirmed payments, and the receiver check. Each removal made at least one test fail, and the code was restored. The flow was checked in headless Chrome |
 
-Latest results: the backend passes 130 tests, `ruff check`, `ruff format --check` and
-`alembic check`, and the frontend passes 21 unit tests, ESLint and `tsc`. After the final
-code changes, the developer ran `docker compose up --build`, which also builds the
-frontend, and added and deleted an expense in a browser.
+Latest results: the backend passes 180 tests, `ruff check`, `ruff format --check` and
+`alembic check`, and the frontend passes 26 unit tests, ESLint and `tsc`. Before repayments
+were added, the developer ran `docker compose up --build`, which also builds the frontend,
+and added and deleted an expense in a browser. With repayments, the AI built and started
+all services with Docker and requested the page and the payments endpoints. The AI checked
+the repayment screens in headless Chrome against the test database.
