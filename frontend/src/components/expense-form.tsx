@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus } from "lucide-react";
 import { type FormEvent, useRef, useState } from "react";
 
 import { createExpenseAction } from "@/app/actions";
@@ -10,7 +11,6 @@ import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { PlusIcon } from "@/components/ui/icons";
 import { Input } from "@/components/ui/input";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Select } from "@/components/ui/select";
@@ -163,7 +163,7 @@ export function ExpenseForm({ user, group, startOpen }: Props) {
           </Button>
         ) : (
           <Button size="sm" onClick={() => setOpen(true)}>
-            <PlusIcon />
+            <Plus className="h-4 w-4" />
             Add expense
           </Button>
         )

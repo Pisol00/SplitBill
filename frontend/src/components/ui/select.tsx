@@ -1,10 +1,9 @@
 "use client";
 
+import { Check, ChevronDown } from "lucide-react";
 import { type KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 
 import { nextActiveIndex } from "./listbox";
-
-import { CheckIcon, ChevronDownIcon } from "./icons";
 
 // A dropdown built without a UI library, following the WAI-ARIA select-only
 // combobox pattern: https://www.w3.org/WAI/ARIA/apg/patterns/combobox/
@@ -129,7 +128,7 @@ export function Select({
         <span className={`truncate ${selected ? "" : "text-fg-subtle"}`}>
           {selected?.label ?? placeholder}
         </span>
-        <ChevronDownIcon
+        <ChevronDown
           className={`h-4 w-4 shrink-0 text-fg-subtle transition-transform duration-150 ease-standard ${open ? "rotate-180" : ""}`}
         />
       </button>
@@ -158,7 +157,7 @@ export function Select({
                 } ${isSelected ? "font-medium" : ""}`}
               >
                 {option.label}
-                {isSelected && <CheckIcon className="h-4 w-4 text-accent" />}
+                {isSelected && <Check className="h-4 w-4 text-accent" />}
               </li>
             );
           })}

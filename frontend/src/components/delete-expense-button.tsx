@@ -1,11 +1,11 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { deleteExpenseAction } from "@/app/actions";
 import { Button } from "@/components/ui/button";
-import { TrashIcon } from "@/components/ui/icons";
 import { friendlyMessage } from "@/utils/error-messages";
 import { groupQueries } from "@/utils/queries";
 
@@ -73,7 +73,7 @@ export function DeleteExpenseButton({ user, groupId, expenseId, description }: P
             setConfirming(true);
           }}
         >
-          <TrashIcon />
+          <Trash2 className="h-4 w-4" />
         </Button>
       )}
       {error && (

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { AlertIcon } from "./icons";
+import { CircleAlert } from "lucide-react";
 
 export function Alert({ children }: { children: ReactNode }) {
   return (
@@ -8,7 +8,7 @@ export function Alert({ children }: { children: ReactNode }) {
       role="alert"
       className="flex items-start gap-2 rounded-md bg-danger-soft px-3 py-2.5 text-sm text-danger"
     >
-      <AlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
+      <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
       <span>{children}</span>
     </p>
   );
